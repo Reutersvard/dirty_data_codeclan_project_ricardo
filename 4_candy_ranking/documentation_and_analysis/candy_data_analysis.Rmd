@@ -1,0 +1,43 @@
+---
+title: "Halloween Candy Data Analysis, 2015-2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Task 4 - Halloween Candy Data
+The raw data analysed by this project is in files boing-boing-candy-2015.xlxs, boing-boing-candy-2016.xlxs and boing-boing-candy-2017.xlxs. These files are located in the `raw_data` folder.
+
+More information on this data is available [here](https://www.scq.ubc.ca/so-much-candy-data-seriously/).
+
+## Notes on the initial data cleaning.
+ * The three datasets will be combined together. Likely with `rbind()`
+ * The column `country` is particularly messy and will require some 'hard coding'.
+ * For the last three questions, count despair as -1, joy as +1, and meh as 0.
+ * The 2015 data lacks the meh option.
+ * A Timestamp is used as ID in 2016 and 2017, values can go in the same column,
+ * Some age values can be recovered from the country column.
+ * Some columns are irrelevant for questions about candy.
+ * Assume that covert political questions in the form of M&M colour are also irrelevant. 
+ * Column names have to match so they can be combined. For this purpose I have written a helper function that prints unmatched names. 
+ 
+## Analysis questions
+
+### What is the total number of candy ratings given across the three years?
+Number of candy ratings to be counted, not the number of raters. Missing values to be excluded.
+
+### What was the average age of people who are going out trick or treating?
+
+### What was the average age of people who are not going trick or treating?
+
+### For each of joy, despair and meh, which candy bar received the most of these ratings?
+
+### How many people rated Starburst as despair?
+
+### What was the most popular candy bar by this rating system for each gender in the dataset?
+
+### What was the most popular candy bar in each year?
+
+### What was the most popular candy bar by this rating for people in US, Canada, UK, and all other countries?
