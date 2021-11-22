@@ -2,26 +2,57 @@
 title: "Halloween Candy Data Analysis, 2015-2017"
 output: html_document
 ---
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+candies <- candies
 ```
 
 ## Task 4 - Halloween Candy Data
+
 The raw data analysed by this project is in files boing-boing-candy-2015.xlxs, boing-boing-candy-2016.xlxs and boing-boing-candy-2017.xlxs. These files are located in the `raw_data` folder.
 
 More information on this data is available [here](https://www.scq.ubc.ca/so-much-candy-data-seriously/).
 
-## Notes on the initial data cleaning.
- * The three datasets will be combined together. Likely with `rbind()`
+
+## Notes on data cleaning.
+
+ * The three datasets have been combined together with `rbind()`.
+ 
  * The column `country` is particularly messy and will require some 'hard coding'.
- * For the last three questions, count despair as -1, joy as +1, and meh as 0.
- * The 2015 data lacks the meh option.
- * A Timestamp is used as ID in 2016 and 2017, values can go in the same column,
- * Some age values can be recovered from the country column.
- * Some columns are irrelevant for questions about candy.
- * Assume that covert political questions in the form of M&M colour are also irrelevant. 
- * Column names have to match so they can be combined. For this purpose I have written a helper function that prints unmatched names. 
+```{r}
+candies %>% 
+        group_by(country) %>% 
+        summarise(count = n()) %>% 
+        arrange(desc(count))
+```
+ We can see the number of countries, most of which are really USA.
+ 
+ 
+ * TODO For the last three questions, count despair as -1, joy as +1, and meh as 0.
+ 
+ * As an observation, the 2015 data lacks the meh option.
+ 
+ * A timestamp is roughly used as ID in 2015 and 2016, in 2017 there's an actual ID. All three values can go in the same column. I converted the timestamps into character type and proceeded to merge.
+ 
+ * Some age values have been recovered from the country column.
+ 
+ * Some country values have been recovered from the region column.
+ 
+ * Some columns are irrelevant for questions about candy. I have removed those.
+ 
+ * Some columns e.g. 'mary janes' and 'anonymous brown globs' seem to be referring to the same candy, but I will leave them as separate candies since people have rated them differently for the same year.
+ 
+ * IN PROGRESS Filter out rows with no info i.e. no ratings given.
+ 
+ * I assume that covert political questions in the form of M&M colour are also irrelevant.
+ 
+ * Column names have to match so they can be combined. For this purpose I have written a helper function that prints unmatched names.
+ 
+ * TODO Pivot all the candy names and ratings into a `candy_name` and `rating` column.
+ 
+ * TODO `going_out` column converted to boolean type.
+ 
  
 ## Analysis questions
 
