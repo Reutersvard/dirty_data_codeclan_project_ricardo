@@ -173,18 +173,39 @@ pre code {
 <p>The raw data analysed by this project is in files boing-boing-candy-2015.xlxs, boing-boing-candy-2016.xlxs and boing-boing-candy-2017.xlxs. These files are located in the <code>raw_data</code> folder.</p>
 <p>More information on this data is available <a href="https://www.scq.ubc.ca/so-much-candy-data-seriously/">here</a>.</p>
 </div>
-<div id="notes-on-the-initial-data-cleaning." class="section level2">
-<h2>Notes on the initial data cleaning.</h2>
+<div id="notes-on-data-cleaning" class="section level2">
+<h2>Notes on data cleaning</h2>
 <ul>
-<li>The three datasets will be combined together. Likely with <code>rbind()</code></li>
-<li>The column <code>country</code> is particularly messy and will require some ‘hard coding’.</li>
-<li>For the last three questions, count despair as -1, joy as +1, and meh as 0.</li>
-<li>The 2015 data lacks the meh option.</li>
-<li>A Timestamp is used as ID in 2016 and 2017, values can go in the same column,</li>
-<li>Some age values can be recovered from the country column.</li>
-<li>Some columns are irrelevant for questions about candy.</li>
-<li>Assume that covert political questions in the form of M&amp;M colour are also irrelevant.</li>
-<li>Column names have to match so they can be combined. For this purpose I have written a helper function that prints unmatched names.</li>
+<li><p>The three datasets have been combined together with <code>rbind()</code>.</p></li>
+<li><p>The column <code>country</code> is particularly messy and will require some ‘hard coding’.</p></li>
+</ul>
+<pre class="r"><code># After the cleaning, this is what it looks like
+candies %&gt;% 
+        group_by(country) %&gt;% 
+        summarise(count = n()) %&gt;% 
+        arrange(desc(count))</code></pre>
+<pre><code>## # A tibble: 5 × 2
+##   country  count
+##   &lt;chr&gt;    &lt;int&gt;
+## 1 &lt;NA&gt;    639072
+## 2 USA     348432
+## 3 CANADA   38752
+## 4 OTHER    14112
+## 5 UK        6608</code></pre>
+<ul>
+<li><p>For the last three questions, count despair as -1, joy as +1, and meh as 0.</p></li>
+<li><p>As an observation, the 2015 data lacks the meh option.</p></li>
+<li><p>A timestamp is roughly used as ID in 2015 and 2016, in 2017 there’s an actual ID. All three values can go in the same column. I converted the timestamps into character type and proceeded to merge.</p></li>
+<li><p>Some age values have been recovered from the country column.</p></li>
+<li><p>Some country values have been recovered from the region column.</p></li>
+<li><p>Some columns are irrelevant for the analysis questions. I have removed those.</p></li>
+<li><p>Some columns e.g. ‘mary janes’ and ‘anonymous brown globs’ seem to be referring to the same candy, but I will leave them as separate candies since people have rated them differently for the same year.</p></li>
+<li><p>IN PROGRESS Filter out rows with no info i.e. no ratings given.</p></li>
+<li><p>I assume that covert political questions in the form of M&amp;M colour are also irrelevant.</p></li>
+<li><p>Column names have to match so they can be combined. For this purpose I have written a helper function that prints unmatched names.</p></li>
+<li><p>Pivot all the candy names and ratings into a <code>candy_name</code> and <code>rating</code> column.</p></li>
+<li><p><code>going_out</code> column converted to boolean type.</p></li>
+<li><p>Admitted only ages within a 2 to 99 range</p></li>
 </ul>
 </div>
 <div id="analysis-questions" class="section level2">
@@ -192,27 +213,115 @@ pre code {
 <div id="what-is-the-total-number-of-candy-ratings-given-across-the-three-years" class="section level3">
 <h3>What is the total number of candy ratings given across the three years?</h3>
 <p>Number of candy ratings to be counted, not the number of raters. Missing values to be excluded.</p>
+<pre class="r"><code>candies %&gt;%
+        filter(!is.na(rating)) %&gt;% 
+        nrow()</code></pre>
+<pre><code>## [1] 755126</code></pre>
 </div>
 <div id="what-was-the-average-age-of-people-who-are-going-out-trick-or-treating" class="section level3">
 <h3>What was the average age of people who are going out trick or treating?</h3>
-</div>
-<div id="what-was-the-average-age-of-people-who-are-not-going-trick-or-treating" class="section level3">
-<h3>What was the average age of people who are not going trick or treating?</h3>
+<pre class="r"><code>candies %&gt;% 
+        filter(going_out == T) %&gt;% 
+        summarise(average_age = mean(age, na.rm = T))</code></pre>
+<pre><code>## # A tibble: 1 × 1
+##   average_age
+##         &lt;dbl&gt;
+## 1        35.0</code></pre>
 </div>
 <div id="for-each-of-joy-despair-and-meh-which-candy-bar-received-the-most-of-these-ratings" class="section level3">
 <h3>For each of joy, despair and meh, which candy bar received the most of these ratings?</h3>
+<pre class="r"><code>candies %&gt;% 
+        group_by(rating, candy_name) %&gt;% 
+        summarise(count = n()) %&gt;% 
+        slice_max(count)</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;rating&#39;. You can override using the `.groups` argument.</code></pre>
+<pre><code>## # A tibble: 4 × 3
+## # Groups:   rating [4]
+##   rating candy_name               count
+##    &lt;dbl&gt; &lt;chr&gt;                    &lt;int&gt;
+## 1     -1 broken_glow_stick         7905
+## 2      0 lollipops                 1570
+## 3      1 any_full_sized_candy_bar  7589
+## 4     NA take_5                    7805</code></pre>
 </div>
 <div id="how-many-people-rated-starburst-as-despair" class="section level3">
 <h3>How many people rated Starburst as despair?</h3>
+<pre class="r"><code>candies %&gt;% 
+        filter(candy_name == &quot;starburst&quot; &amp; rating == -1) %&gt;% 
+        nrow()</code></pre>
+<pre><code>## [1] 1990</code></pre>
+<p>Note, since no one rated a candy more than once these are all distinct people.</p>
 </div>
 <div id="what-was-the-most-popular-candy-bar-by-this-rating-system-for-each-gender-in-the-dataset" class="section level3">
 <h3>What was the most popular candy bar by this rating system for each gender in the dataset?</h3>
+<pre class="r"><code>candies %&gt;%
+        group_by(gender, candy_name) %&gt;% 
+        summarise(popularity = sum(rating, na.rm = T)) %&gt;% 
+        slice_max(popularity, n = 2)</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;gender&#39;. You can override using the `.groups` argument.</code></pre>
+<pre><code>## # A tibble: 10 × 3
+## # Groups:   gender [5]
+##    gender             candy_name                          popularity
+##    &lt;chr&gt;              &lt;chr&gt;                                    &lt;dbl&gt;
+##  1 Female             any_full_sized_candy_bar                   875
+##  2 Female             cash_or_other_forms_of_legal_tender        841
+##  3 I&#39;d rather not say any_full_sized_candy_bar                    68
+##  4 I&#39;d rather not say cash_or_other_forms_of_legal_tender         66
+##  5 Male               any_full_sized_candy_bar                  1584
+##  6 Male               reese_s_peanut_butter_cups                1443
+##  7 Other              any_full_sized_candy_bar                    37
+##  8 Other              cash_or_other_forms_of_legal_tender         36
+##  9 &lt;NA&gt;               any_full_sized_candy_bar                  4618
+## 10 &lt;NA&gt;               reese_s_peanut_butter_cups                4391</code></pre>
+<p>I have picked out the <strong>two</strong> most popular ones to see if there was some variation with gender.</p>
 </div>
 <div id="what-was-the-most-popular-candy-bar-in-each-year" class="section level3">
 <h3>What was the most popular candy bar in each year?</h3>
+<pre class="r"><code># First let&#39;s sort the table by year
+candies_by_year &lt;- candies %&gt;%
+        select(id, candy_name, rating) %&gt;%
+        mutate(id = case_when(
+                str_detect(id, &quot;2015&quot;) ~ 2015,
+                str_detect(id, &quot;2016&quot;) ~ 2016,
+                TRUE ~ 2017))
+
+candies_by_year %&gt;%
+        group_by(id, candy_name) %&gt;% 
+        summarise(popularity = sum(rating, na.rm = T)) %&gt;%
+        slice_max(popularity, n = 2)</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;id&#39;. You can override using the `.groups` argument.</code></pre>
+<pre><code>## # A tibble: 6 × 3
+## # Groups:   id [3]
+##      id candy_name                          popularity
+##   &lt;dbl&gt; &lt;chr&gt;                                    &lt;dbl&gt;
+## 1  2015 any_full_sized_candy_bar                  4604
+## 2  2015 reese_s_peanut_butter_cups                4375
+## 3  2016 any_full_sized_candy_bar                  1037
+## 4  2016 cash_or_other_forms_of_legal_tender        948
+## 5  2017 any_full_sized_candy_bar                  1541
+## 6  2017 reese_s_peanut_butter_cups                1403</code></pre>
 </div>
-<div id="what-was-the-most-popular-candy-bar-by-this-rating-for-people-in-us-canada-uk-and-all-other-countries" class="section level3">
-<h3>What was the most popular candy bar by this rating for people in US, Canada, UK, and all other countries?</h3>
+<div id="what-was-the-most-popular-candy-bar-for-people-in-us-canada-uk-and-all-other-countries" class="section level3">
+<h3>What was the most popular candy bar for people in US, Canada, UK, and all other countries?</h3>
+<pre class="r"><code>candies %&gt;%
+        group_by(country, candy_name) %&gt;% 
+        summarise(popularity = sum(rating, na.rm = T)) %&gt;% 
+        slice_max(popularity, n = 2)</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;country&#39;. You can override using the `.groups` argument.</code></pre>
+<pre><code>## # A tibble: 10 × 3
+## # Groups:   country [5]
+##    country candy_name                          popularity
+##    &lt;chr&gt;   &lt;chr&gt;                                    &lt;dbl&gt;
+##  1 CANADA  any_full_sized_candy_bar                   253
+##  2 CANADA  kit_kat                                    231
+##  3 OTHER   any_full_sized_candy_bar                    84
+##  4 OTHER   cash_or_other_forms_of_legal_tender         69
+##  5 UK      cash_or_other_forms_of_legal_tender         32
+##  6 UK      tolberone_something_or_other                32
+##  7 USA     any_full_sized_candy_bar                  2184
+##  8 USA     reese_s_peanut_butter_cups                1991
+##  9 &lt;NA&gt;    any_full_sized_candy_bar                  4630
+## 10 &lt;NA&gt;    reese_s_peanut_butter_cups                4398</code></pre>
 </div>
 </div>
 

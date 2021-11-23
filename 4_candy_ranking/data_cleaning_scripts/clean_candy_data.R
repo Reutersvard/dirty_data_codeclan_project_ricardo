@@ -120,6 +120,7 @@ candy_2015 <- candy_2015 %>%
 
 
 # Converting id to character ------------------------------------------------
+
 # This could be numeric type, but char type will suffice for the purposes.
 candy_2015 <- candy_2015 %>%
   mutate(id = as.character(id))
@@ -229,9 +230,9 @@ candies <- candies %>%
 rm(candy_2015, candy_2016, candy_2017, print_unmatched_colnames)
 
 
-# Recover age values from country column ----------------------------------
-
-relevant_ids <- filter(candies, is.na(age)) %>% 
+# Recover age values from country column and country from region column --------
+relevant_ids <- candies %>%
+  filter(is.na(age)) %>% 
   arrange(country) %>% 
   head(11) %>% 
   select(id) %>% 
@@ -248,25 +249,78 @@ candies <- candies %>%
 candies <- candies %>% 
   filter(id != "90288589")
 
-rm(relevant_ids)
+# Recover country from regions, remove region column
+relevant_ids <- candies %>%
+  select(country, region, id) %>% 
+  filter(is.na(country)) %>% 
+  filter(!is.na(region)) %>% 
+  select(id) %>% 
+  flatten_chr()
+
+candies <- candies %>%
+  mutate(country = if_else(id %in% relevant_ids, "USA", country)) %>% 
+  select(-region)
+
+  rm(relevant_ids)
+
+  
+# Clean age column  and convert going_out to bool -------------------------
+candies <- candies %>% 
+  mutate(age = as.numeric(age),
+         age =if_else(age %in% 2:99, age, as.numeric(NA)))
+  
+candies <- candies %>% 
+  mutate(going_out = if_else(
+    going_out == "Yes", TRUE, FALSE
+  ))
 
 
-# Pivot the two remaining dfs ---------------------------------------------
-# candies <- candies %>%
-#   pivot_longer(cols = c("100_grand_bar":york_peppermint_patties,
-#                       sandwich_sized_bags_filled_with_boo_berry_crunch, take_5),
-#                names_to = "candy_name",
-#                values_to = "rating")
-# 
-# candy_2015 <- candy_2015 %>%
-#   pivot_longer(cols = c(butterfinger:york_peppermint_patties,
-#                         necco_wafers,
-#                         boxo_raisins:sandwich_sized_bags_filled_with_boo_berry_crunch,
-# sea_salt_flavored_stuff_probably_chocolate_since_this_is_the_it_flavor_of_the_year
-#               ),
-#                names_to = "candy_name",
-#                values_to = "rating")
-#   
+  # Cleaning the country column ---------------------------------------------
+candies <- candies %>%
+  mutate(
+    country = toupper(str_remove_all(country, "(?i)[^A-Z]+")))
+
+country_to_usa <- str_c(
+  "STATE", "US", "MERICA", "USA", "TRUMP", "UNITEDS", "ALASKA",
+  "AMERCA", "CALIFORNIA", "NORTHCAROLINA", "PITTSBURGH",
+  sep = "|")
+
+country_to_can <-str_c("CANADA", "CAN", sep = "|")
+
+country_to_uk <- str_c("UNITEDKINGDOM", "UK", "SCOTLAND", "ENGLAND", sep = "|")
+
+candies <- candies %>% 
+  mutate(country = case_when(
+    str_detect(country, country_to_usa) ~ "USA",
+    str_detect(country, country_to_can) ~ "CANADA",
+    str_detect(country, country_to_uk) ~ "UK",
+    is.na(country) ~ as.character(NA),
+    TRUE ~ "OTHER"
+    ))
+
+rm(country_to_can, country_to_uk, country_to_usa)
+
+
+# Pivot the dataframe  ---------------------------------------------
+candies <- candies %>%
+  pivot_longer(cols = c("100_grand_bar":york_peppermint_patties,
+sandwich_sized_bags_filled_with_boo_berry_crunch:sea_salt_flavored_stuff_probably_chocolate_since_this_is_the_it_flavor_of_the_year),
+               names_to = "candy_name",
+               values_to = "rating")
+
+  
+# Clean the ratings as numeric counts -------------------------------------  
+candies <- candies %>% 
+  mutate(rating = case_when(
+    str_detect(rating, "JOY") ~ 1,
+    str_detect(rating, "DESPAIR") ~ -1,
+    str_detect(rating, "MEH") ~ 0))
+
+
+# Write into a CSV then remove from memory --------------------------------
+write_csv(candies, "clean_data/clean_candies.csv")
+rm(candies)
+
 
 
 

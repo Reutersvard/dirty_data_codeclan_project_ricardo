@@ -5,7 +5,8 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
-candies <- candies
+library(here)
+candies <- read_csv(here::here("clean_data/clean_candies.csv"))
 ```
 
 ## Task 4 - Halloween Candy Data
@@ -15,21 +16,19 @@ The raw data analysed by this project is in files boing-boing-candy-2015.xlxs, b
 More information on this data is available [here](https://www.scq.ubc.ca/so-much-candy-data-seriously/).
 
 
-## Notes on data cleaning.
+## Notes on data cleaning
 
  * The three datasets have been combined together with `rbind()`.
  
  * The column `country` is particularly messy and will require some 'hard coding'.
 ```{r}
+# After the cleaning, this is what it looks like
 candies %>% 
         group_by(country) %>% 
         summarise(count = n()) %>% 
         arrange(desc(count))
 ```
- We can see the number of countries, most of which are really USA.
- 
- 
- * TODO For the last three questions, count despair as -1, joy as +1, and meh as 0.
+ * For the last three questions, count despair as -1, joy as +1, and meh as 0.
  
  * As an observation, the 2015 data lacks the meh option.
  
@@ -39,7 +38,7 @@ candies %>%
  
  * Some country values have been recovered from the region column.
  
- * Some columns are irrelevant for questions about candy. I have removed those.
+ * Some columns are irrelevant for the analysis questions. I have removed those.
  
  * Some columns e.g. 'mary janes' and 'anonymous brown globs' seem to be referring to the same candy, but I will leave them as separate candies since people have rated them differently for the same year.
  
@@ -49,26 +48,74 @@ candies %>%
  
  * Column names have to match so they can be combined. For this purpose I have written a helper function that prints unmatched names.
  
- * TODO Pivot all the candy names and ratings into a `candy_name` and `rating` column.
+ * Pivot all the candy names and ratings into a `candy_name` and `rating` column.
  
- * TODO `going_out` column converted to boolean type.
+ * `going_out` column converted to boolean type.
  
+ * Admitted only ages within a 2 to 99 range
  
+
 ## Analysis questions
 
 ### What is the total number of candy ratings given across the three years?
 Number of candy ratings to be counted, not the number of raters. Missing values to be excluded.
+```{r}
+candies %>%
+        filter(!is.na(rating)) %>% 
+        nrow()
+```
+
 
 ### What was the average age of people who are going out trick or treating?
-
-### What was the average age of people who are not going trick or treating?
-
+```{r}
+candies %>% 
+        filter(going_out == T) %>% 
+        summarise(average_age = mean(age, na.rm = T))
+```
 ### For each of joy, despair and meh, which candy bar received the most of these ratings?
-
+```{r}
+candies %>% 
+        group_by(rating, candy_name) %>% 
+        summarise(count = n()) %>% 
+        slice_max(count)
+```
 ### How many people rated Starburst as despair?
+```{r}
+candies %>% 
+        filter(candy_name == "starburst" & rating == -1) %>% 
+        nrow()
+```
+Note, since no one rated a candy more than once these are all distinct people.
 
 ### What was the most popular candy bar by this rating system for each gender in the dataset?
+```{r}
+candies %>%
+        group_by(gender, candy_name) %>% 
+        summarise(popularity = sum(rating, na.rm = T)) %>% 
+        slice_max(popularity, n = 2)
+```
+I have picked out the **two** most popular ones to see if there was some variation with gender.
 
 ### What was the most popular candy bar in each year?
+```{r}
+# First let's sort the table by year
+candies_by_year <- candies %>%
+        select(id, candy_name, rating) %>%
+        mutate(id = case_when(
+                str_detect(id, "2015") ~ 2015,
+                str_detect(id, "2016") ~ 2016,
+                TRUE ~ 2017))
 
-### What was the most popular candy bar by this rating for people in US, Canada, UK, and all other countries?
+candies_by_year %>%
+        group_by(id, candy_name) %>% 
+        summarise(popularity = sum(rating, na.rm = T)) %>%
+        slice_max(popularity, n = 2)
+```
+
+### What was the most popular candy bar for people in US, Canada, UK, and all other countries?
+```{r}
+candies %>%
+        group_by(country, candy_name) %>% 
+        summarise(popularity = sum(rating, na.rm = T)) %>% 
+        slice_max(popularity, n = 2)
+```
