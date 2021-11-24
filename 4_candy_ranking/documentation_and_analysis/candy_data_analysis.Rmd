@@ -1,6 +1,10 @@
 ---
 title: "Halloween Candy Data Analysis, 2015-2017"
-output: html_document
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+  pdf_document: default
 ---
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)

@@ -159,7 +159,8 @@ print_unmatched_colnames <- function(df1, df2) {
 
 # Doesn't quite print the names from df2, but it does the trick.
 
-# Amend the amount of columns found with function  ---------------------------
+
+# Creating empty columns before row bind  ---------------------------------
 
 # For 2017
 candy_2017 <- candy_2017 %>% 

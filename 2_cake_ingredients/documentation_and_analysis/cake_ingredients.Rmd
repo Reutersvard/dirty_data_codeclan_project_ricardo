@@ -1,0 +1,78 @@
+---
+title: "Cake Ingredients"
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+  pdf_document: default
+---
+```{r include=FALSE}
+library(tidyverse)
+library(here)
+cakes <- read_csv(here("clean_data/clean_cakes.csv"))
+```
+
+The main data is in the file cake-ingredients-1961.csv, there is supplementary data that converts from short form ingredients to long form in cake_ingredient_code.csv.
+<br>
+
+### Some cleaning notes
+
+* The raw data is not in tidy format, I have wrangled it so the clean data is.
+
+* The final dataframe has actual ingredient names, not the abbreviations. These were previously found in cake_ingredient_code.csv
+
+* Renamed some columns so the types of values they contain are clearer.
+
+* I have formatted amounts and measurement units.
+
+* There is one row per ingredient and cake. So I have removed the rows where the amount of ingredient is `NA`.
+
+<br>
+
+### Analysis questions
+<br>
+
+#### Which cake has the most cocoa in it?
+```{r}
+cakes %>% 
+  filter(ingredient == "Cocoa") %>%
+  slice_max(amount, n = 2)
+```
+The One Bowl Chocolate seems to be the winner, other cakes only have one tablespoon.
+<br><br>
+
+#### For sponge cake, how many cups of ingredients are used in total?
+```{r}
+cakes %>% 
+  filter(cake_name == "Sponge" & measure_unit == "cup") %>% 
+  summarise(total_cups = sum(amount))
+```
+<br><br>
+
+#### How many ingredients are measured in teaspoons?
+```{r}
+cakes %>%
+  distinct(ingredient, measure_unit) %>% 
+  filter(measure_unit == "teaspoon")
+```
+It seems that 8 ingredients are measured in teaspoons.
+<br><br>
+
+#### Which cake has the most unique ingredients?
+```{r}
+cakes %>% 
+  group_by(cake_name) %>% 
+  summarise(unique_ingredients = n()) %>% 
+  slice_max(unique_ingredients, n = 5)
+  
+```
+We have a tie for the first spot with 11 unique ingredients.
+<br><br>
+
+#### Which ingredients are used only once?
+```{r}
+cakes %>% 
+  group_by(ingredient) %>% 
+  summarise(times_used = n()) %>% 
+  slice_min(times_used)
+```
