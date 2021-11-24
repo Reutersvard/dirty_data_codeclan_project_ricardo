@@ -205,7 +205,8 @@ candies %&gt;%
 <li><p>Column names have to match so they can be combined. For this purpose I have written a helper function that prints unmatched names.</p></li>
 <li><p>Pivot all the candy names and ratings into a <code>candy_name</code> and <code>rating</code> column.</p></li>
 <li><p><code>going_out</code> column converted to boolean type.</p></li>
-<li><p>Admitted only ages within a 2 to 99 range</p></li>
+<li><p>Admitted only ages within a 2 to 99 range.</p></li>
+<li><p>I have purposefully left in some things that are not candies e.g. <em>broken glow sticks</em>, provided they’re things one could get whilst trick or treating.</p></li>
 </ul>
 </div>
 <div id="analysis-questions" class="section level2">
@@ -227,6 +228,16 @@ candies %&gt;%
 ##   average_age
 ##         &lt;dbl&gt;
 ## 1        35.0</code></pre>
+</div>
+<div id="what-was-the-average-age-of-people-who-are-not-going-out-trick-or-treating" class="section level3">
+<h3>What was the average age of people who are <strong>not</strong> going out trick or treating?</h3>
+<pre class="r"><code>candies %&gt;% 
+        filter(going_out == F) %&gt;% 
+        summarise(average_age = mean(age, na.rm = T))</code></pre>
+<pre><code>## # A tibble: 1 × 1
+##   average_age
+##         &lt;dbl&gt;
+## 1        39.1</code></pre>
 </div>
 <div id="for-each-of-joy-despair-and-meh-which-candy-bar-received-the-most-of-these-ratings" class="section level3">
 <h3>For each of joy, despair and meh, which candy bar received the most of these ratings?</h3>
@@ -257,23 +268,28 @@ candies %&gt;%
 <pre class="r"><code>candies %&gt;%
         group_by(gender, candy_name) %&gt;% 
         summarise(popularity = sum(rating, na.rm = T)) %&gt;% 
-        slice_max(popularity, n = 2)</code></pre>
+        slice_max(popularity, n = 3)</code></pre>
 <pre><code>## `summarise()` has grouped output by &#39;gender&#39;. You can override using the `.groups` argument.</code></pre>
-<pre><code>## # A tibble: 10 × 3
+<pre><code>## # A tibble: 15 × 3
 ## # Groups:   gender [5]
 ##    gender             candy_name                          popularity
 ##    &lt;chr&gt;              &lt;chr&gt;                                    &lt;dbl&gt;
 ##  1 Female             any_full_sized_candy_bar                   875
 ##  2 Female             cash_or_other_forms_of_legal_tender        841
-##  3 I&#39;d rather not say any_full_sized_candy_bar                    68
-##  4 I&#39;d rather not say cash_or_other_forms_of_legal_tender         66
-##  5 Male               any_full_sized_candy_bar                  1584
-##  6 Male               reese_s_peanut_butter_cups                1443
-##  7 Other              any_full_sized_candy_bar                    37
-##  8 Other              cash_or_other_forms_of_legal_tender         36
-##  9 &lt;NA&gt;               any_full_sized_candy_bar                  4618
-## 10 &lt;NA&gt;               reese_s_peanut_butter_cups                4391</code></pre>
-<p>I have picked out the <strong>two</strong> most popular ones to see if there was some variation with gender.</p>
+##  3 Female             reese_s_peanut_butter_cups                 768
+##  4 I&#39;d rather not say any_full_sized_candy_bar                    68
+##  5 I&#39;d rather not say cash_or_other_forms_of_legal_tender         66
+##  6 I&#39;d rather not say kit_kat                                     62
+##  7 Male               any_full_sized_candy_bar                  1584
+##  8 Male               reese_s_peanut_butter_cups                1443
+##  9 Male               kit_kat                                   1439
+## 10 Other              any_full_sized_candy_bar                    37
+## 11 Other              cash_or_other_forms_of_legal_tender         36
+## 12 Other              twix                                        32
+## 13 &lt;NA&gt;               any_full_sized_candy_bar                  4618
+## 14 &lt;NA&gt;               reese_s_peanut_butter_cups                4391
+## 15 &lt;NA&gt;               kit_kat                                   4358</code></pre>
+<p>I have picked out the <strong>three</strong> most popular ones to see if there was some variation with gender.</p>
 </div>
 <div id="what-was-the-most-popular-candy-bar-in-each-year" class="section level3">
 <h3>What was the most popular candy bar in each year?</h3>
@@ -288,40 +304,50 @@ candies_by_year &lt;- candies %&gt;%
 candies_by_year %&gt;%
         group_by(id, candy_name) %&gt;% 
         summarise(popularity = sum(rating, na.rm = T)) %&gt;%
-        slice_max(popularity, n = 2)</code></pre>
+        slice_max(popularity, n = 3)</code></pre>
 <pre><code>## `summarise()` has grouped output by &#39;id&#39;. You can override using the `.groups` argument.</code></pre>
-<pre><code>## # A tibble: 6 × 3
+<pre><code>## # A tibble: 9 × 3
 ## # Groups:   id [3]
 ##      id candy_name                          popularity
 ##   &lt;dbl&gt; &lt;chr&gt;                                    &lt;dbl&gt;
 ## 1  2015 any_full_sized_candy_bar                  4604
 ## 2  2015 reese_s_peanut_butter_cups                4375
-## 3  2016 any_full_sized_candy_bar                  1037
-## 4  2016 cash_or_other_forms_of_legal_tender        948
-## 5  2017 any_full_sized_candy_bar                  1541
-## 6  2017 reese_s_peanut_butter_cups                1403</code></pre>
+## 3  2015 kit_kat                                   4341
+## 4  2016 any_full_sized_candy_bar                  1037
+## 5  2016 cash_or_other_forms_of_legal_tender        948
+## 6  2016 kit_kat                                    920
+## 7  2017 any_full_sized_candy_bar                  1541
+## 8  2017 reese_s_peanut_butter_cups                1403
+## 9  2017 kit_kat                                   1394</code></pre>
 </div>
 <div id="what-was-the-most-popular-candy-bar-for-people-in-us-canada-uk-and-all-other-countries" class="section level3">
 <h3>What was the most popular candy bar for people in US, Canada, UK, and all other countries?</h3>
 <pre class="r"><code>candies %&gt;%
         group_by(country, candy_name) %&gt;% 
         summarise(popularity = sum(rating, na.rm = T)) %&gt;% 
-        slice_max(popularity, n = 2)</code></pre>
+        slice_max(popularity, n = 3)</code></pre>
 <pre><code>## `summarise()` has grouped output by &#39;country&#39;. You can override using the `.groups` argument.</code></pre>
-<pre><code>## # A tibble: 10 × 3
+<pre><code>## # A tibble: 17 × 3
 ## # Groups:   country [5]
 ##    country candy_name                          popularity
 ##    &lt;chr&gt;   &lt;chr&gt;                                    &lt;dbl&gt;
 ##  1 CANADA  any_full_sized_candy_bar                   253
 ##  2 CANADA  kit_kat                                    231
-##  3 OTHER   any_full_sized_candy_bar                    84
-##  4 OTHER   cash_or_other_forms_of_legal_tender         69
-##  5 UK      cash_or_other_forms_of_legal_tender         32
-##  6 UK      tolberone_something_or_other                32
-##  7 USA     any_full_sized_candy_bar                  2184
-##  8 USA     reese_s_peanut_butter_cups                1991
-##  9 &lt;NA&gt;    any_full_sized_candy_bar                  4630
-## 10 &lt;NA&gt;    reese_s_peanut_butter_cups                4398</code></pre>
+##  3 CANADA  cash_or_other_forms_of_legal_tender        229
+##  4 OTHER   any_full_sized_candy_bar                    84
+##  5 OTHER   cash_or_other_forms_of_legal_tender         69
+##  6 OTHER   kit_kat                                     67
+##  7 UK      cash_or_other_forms_of_legal_tender         32
+##  8 UK      tolberone_something_or_other                32
+##  9 UK      any_full_sized_candy_bar                    31
+## 10 UK      lindt_truffle                               31
+## 11 UK      rolos                                       31
+## 12 USA     any_full_sized_candy_bar                  2184
+## 13 USA     reese_s_peanut_butter_cups                1991
+## 14 USA     kit_kat                                   1965
+## 15 &lt;NA&gt;    any_full_sized_candy_bar                  4630
+## 16 &lt;NA&gt;    reese_s_peanut_butter_cups                4398
+## 17 &lt;NA&gt;    kit_kat                                   4367</code></pre>
 </div>
 </div>
 

@@ -52,7 +52,9 @@ candies %>%
  
  * `going_out` column converted to boolean type.
  
- * Admitted only ages within a 2 to 99 range
+ * Admitted only ages within a 2 to 99 range.
+ 
+ * I have purposefully left in some things that are not candies e.g. *broken glow sticks*, provided they're things one could get whilst trick or treating.
  
 
 ## Analysis questions
@@ -72,6 +74,13 @@ candies %>%
         filter(going_out == T) %>% 
         summarise(average_age = mean(age, na.rm = T))
 ```
+### What was the average age of people who are **not** going out trick or treating?
+```{r}
+candies %>% 
+        filter(going_out == F) %>% 
+        summarise(average_age = mean(age, na.rm = T))
+```
+
 ### For each of joy, despair and meh, which candy bar received the most of these ratings?
 ```{r}
 candies %>% 
@@ -92,9 +101,9 @@ Note, since no one rated a candy more than once these are all distinct people.
 candies %>%
         group_by(gender, candy_name) %>% 
         summarise(popularity = sum(rating, na.rm = T)) %>% 
-        slice_max(popularity, n = 2)
+        slice_max(popularity, n = 3)
 ```
-I have picked out the **two** most popular ones to see if there was some variation with gender.
+I have picked out the **three** most popular ones to see if there was some variation with gender.
 
 ### What was the most popular candy bar in each year?
 ```{r}
@@ -109,7 +118,7 @@ candies_by_year <- candies %>%
 candies_by_year %>%
         group_by(id, candy_name) %>% 
         summarise(popularity = sum(rating, na.rm = T)) %>%
-        slice_max(popularity, n = 2)
+        slice_max(popularity, n = 3)
 ```
 
 ### What was the most popular candy bar for people in US, Canada, UK, and all other countries?
@@ -117,5 +126,5 @@ candies_by_year %>%
 candies %>%
         group_by(country, candy_name) %>% 
         summarise(popularity = sum(rating, na.rm = T)) %>% 
-        slice_max(popularity, n = 2)
+        slice_max(popularity, n = 3)
 ```
