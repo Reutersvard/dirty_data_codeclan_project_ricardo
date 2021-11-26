@@ -42,7 +42,7 @@ rwa <- rwa %>%
     hand = as.factor(case_when(
       hand == 1 ~ "Right",
       hand == 2 ~ "Left",
-      hand == 3 ~ "Other")),
+      hand == 3 ~ "Both")),
     
     education = as.factor(case_when(
       education == 1 ~ "Below Secondary",
